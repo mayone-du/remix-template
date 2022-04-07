@@ -1,6 +1,8 @@
-import type { EntryContext } from "@remix-run/cloudflare";
-import { RemixServer } from "@remix-run/react";
 import { renderToString } from "react-dom/server";
+import { RemixServer } from "@remix-run/react";
+import { injectStylesIntoStaticMarkup } from "@mantine/ssr";
+import { EntryContext } from "@remix-run/react/entry";
+import Buffer from "buffer";
 
 export default function handleRequest(
   request: Request,
@@ -8,14 +10,16 @@ export default function handleRequest(
   responseHeaders: Headers,
   remixContext: EntryContext
 ) {
-  let markup = renderToString(
+  const markup = renderToString(
     <RemixServer context={remixContext} url={request.url} />
   );
-
   responseHeaders.set("Content-Type", "text/html");
 
-  return new Response("<!DOCTYPE html>" + markup, {
-    status: responseStatusCode,
-    headers: responseHeaders,
-  });
+  return new Response(
+    `<!DOCTYPE html>${injectStylesIntoStaticMarkup(markup)}`,
+    {
+      status: responseStatusCode,
+      headers: responseHeaders,
+    }
+  );
 }
