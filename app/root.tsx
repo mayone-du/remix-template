@@ -1,3 +1,5 @@
+import type { ColorScheme } from "@mantine/core";
+import { MantineProvider, ColorSchemeProvider } from "@mantine/core";
 import type { LinksFunction, MetaFunction } from "@remix-run/cloudflare";
 import {
   Links,
@@ -7,10 +9,11 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react";
-import tailwindStylesheetUrl from "./styles/tailwind.css";
+import { useState } from "react";
+import appStyles from "app/styles/app.css";
 
 export const links: LinksFunction = () => [
-  { rel: "stylesheet", href: tailwindStylesheetUrl },
+  { rel: "stylesheet", href: appStyles },
 ];
 
 export const meta: MetaFunction = () => ({
@@ -19,21 +22,43 @@ export const meta: MetaFunction = () => ({
   viewport: "width=device-width,initial-scale=1",
 });
 
-const App = () => {
+export default function App() {
   return (
-    <html lang="ja">
+    <html lang="en">
       <head>
         <Meta />
         <Links />
       </head>
       <body>
-        <Outlet />
+        <MantineTheme>
+          <Outlet />
+        </MantineTheme>
+
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
       </body>
     </html>
   );
-};
+}
 
-export default App;
+const MantineTheme = ({ children }: { children: React.ReactNode }) => {
+  const [colorScheme, setColorScheme] = useState<ColorScheme>("light");
+  const toggleColorScheme = (value?: ColorScheme) =>
+    setColorScheme(value || (colorScheme === "dark" ? "light" : "dark"));
+
+  return (
+    <ColorSchemeProvider
+      colorScheme={colorScheme}
+      toggleColorScheme={toggleColorScheme}
+    >
+      <MantineProvider
+        theme={{ colorScheme }}
+        withNormalizeCSS
+        withGlobalStyles
+      >
+        {children}
+      </MantineProvider>
+    </ColorSchemeProvider>
+  );
+};
